@@ -149,3 +149,117 @@ function ralf_searchfilter($query){
  
   return $query;
 }
+
+function get_field_excerpt($field_name){
+  global $post;
+  $text = get_field($field_name);
+  if($text != ''){
+    $text = strip_shortcodes($text);
+    $text = apply_filters('the_content', $text);
+    $text = str_replace(']]&gt;', ']]&gt;', $text);
+    $excerpt_length = 20;
+    $excerpt_more = apply_filters('excerpt_more', ' ', '[...]');
+    $text = wp_trim_words($text, $excerpt_length, $excerpt_more);
+  }
+  return apply_filters('the_excerpt', $text);
+}
+
+add_action('widgets_init', 'ralf_load_widget');
+function ralf_load_widget(){
+  register_widget('ralf_sector_selector_widget');
+  register_widget('ralf_view_report_widget');
+}
+
+class ralf_sector_selector_widget extends WP_Widget{
+	function __construct(){
+		parent::__construct(
+			'ralf_sector_selector_widget',
+			__('Sector Selector Widget', 'ralf_widget_domain'),
+			array('description' => __('Show a select field for displaying RALF by Sector', 'ralf_widget_domain'))
+		);
+	}
+
+	public function widget($args, $instance){
+		$title = apply_filters('widget_title', $instance['title']);
+
+		echo $args['before_widget'];
+		if(!empty($title)){
+			echo $args['before_title'] . $title . $args['after_title'];
+		}
+
+    $sectors = get_terms(array('taxonomy' => 'sectors', 'orderby' => 'name'));
+    if($sectors){
+      echo '<ul>';
+      foreach($sectors as $sector){
+        echo '<li><a href="' . esc_url(get_term_link($sector)) . '">' . $sector->name . '</a></li>';
+      }
+    }
+    echo '</ul>';
+		echo $args['after_widget'];
+	}
+
+	public function form($instance){
+		if(isset($instance['title'])){
+			$title = $instance['title'];
+		}
+		else{
+			$title = __('New title', 'leaderslink_widget_domain');
+		}
+	?>
+		<p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
+		</p>
+	<?php
+	}
+
+	public function update($new_instance, $old_instance){
+		$instance = array();
+		$instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+		return $instance;
+	}
+}
+
+class ralf_view_report_widget extends WP_Widget{
+	function __construct(){
+		parent::__construct(
+			'ralf_view_report_widget',
+			__('View Report Widget', 'ralf_widget_domain'),
+			array('description' => __('Show the View Report button', 'ralf_widget_domain'))
+		);
+	}
+
+	public function widget($args, $instance){
+		$title = apply_filters('widget_title', $instance['title']);
+
+		echo $args['before_widget'];
+		if(!empty($title)){
+			echo $args['before_title'] . $title . $args['after_title'];
+		}
+
+    echo '<a href="' . home_url('view-report') . '">View Report</a>';
+
+		echo $args['after_widget'];
+	}
+
+	public function form($instance){
+		if(isset($instance['title'])){
+			$title = $instance['title'];
+		}
+		else{
+			$title = __('New title', 'ralf_widget_domain');
+		}
+	?>
+		<p>
+			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>" />
+		</p>
+	<?php
+	}
+
+	public function update($new_instance, $old_instance){
+		$instance = array();
+		$instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+		return $instance;
+	}
+}

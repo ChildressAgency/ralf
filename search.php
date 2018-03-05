@@ -14,8 +14,15 @@ get_header(); ?>
 
 <div class="wrap">
 
+  <?php
+    $the_query = new WP_Query(array(
+      's' => get_search_query(),
+      'post_type' => array('activities', 'impacts'),
+      'orderby' => array('relevance' => 'DESC', 'type' => 'ASC')
+    )); ?>
+
 	<header class="page-header">
-		<?php if ( have_posts() ) : ?>
+		<?php if ( $the_query->have_posts() ) : ?>
 			<h1 class="page-title"><?php printf( __( 'Search Results for: %s', 'twentyseventeen' ), '<span>' . get_search_query() . '</span>' ); ?></h1>
 		<?php else : ?>
 			<h1 class="page-title"><?php _e( 'Nothing Found', 'twentyseventeen' ); ?></h1>
@@ -26,9 +33,9 @@ get_header(); ?>
 		<main id="main" class="site-main" role="main">
 
 		<?php
-		if ( have_posts() ) :
+		if ( $the_query->have_posts() ) :
 			/* Start the Loop */
-			while ( have_posts() ) : the_post();
+			while ( $the_query->have_posts() ) : $the_query->the_post();
 
 				/**
 				 * Run the loop for the search to output the results.
@@ -36,9 +43,10 @@ get_header(); ?>
 				 * called content-search.php and that will be used instead.
 				 */
         //get_template_part( 'template-parts/post/content', 'excerpt' );
-        get_template_part('template-parts/post/content');
 
-			endwhile; // End of the loop.
+          get_template_part('template-parts/post/content', 'search');
+
+      endwhile; // End of the loop.
 
 			the_posts_pagination( array(
 				'prev_text' => twentyseventeen_get_svg( array( 'icon' => 'arrow-left' ) ) . '<span class="screen-reader-text">' . __( 'Previous page', 'twentyseventeen' ) . '</span>',
